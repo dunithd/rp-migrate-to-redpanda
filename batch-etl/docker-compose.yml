@@ -1,0 +1,64 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql/mysql-server:8.0.27
+    hostname: mysql
+    container_name: mysql
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=debezium
+      - MYSQL_USER=mysqluser
+      - MYSQL_PASSWORD=mysqlpw
+    volumes:
+      - ./mysql/mysql.cnf:/etc/mysql/conf.d
+      - ./mysql/mysql_bootstrap.sql:/docker-entrypoint-initdb.d/mysql_bootstrap.sql
+      - ./mysql/data:/var/lib/mysql-files/data
+
+  postgres:
+    image: debezium/postgres:16
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: "pg_isready -U postgresuser -d masterclass"
+      interval: 2s
+      timeout: 20s
+      retries: 10
+    environment:
+      - POSTGRES_USER=postgresuser
+      - POSTGRES_PASSWORD=postgrespw
+      - POSTGRES_DB=masterclass
+      - PGPASSWORD=postgrespw
+    volumes:
+      - ./postgres/postgres_bootstrap.sql:/docker-entrypoint-initdb.d/postgres_bootstrap.sql
+
+  jupyterlab:
+    container_name: jupyterlab
+    image: jupyter/all-spark-notebook
+    ports:
+      - "8889:8888"  # JupyterLab
+    volumes:
+      - ./data:/home/jovyan/data  # Mount a local directory to the container for persistent storage
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+
+  spark-master:
+    container_name: spark-master
+    image: bitnami/spark:3.5
+    ports:
+      - "8080:8080"  # Spark Web UI
+      - "7077:7077"  # Spark master
+    environment:
+      - SPARK_MODE=master
+
+  spark-worker:
+    container_name: spark-worker
+    image: bitnami/spark:3.5
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    volumes:
+      - ./data:/home/jovyan/data
+    depends_on:
+      - spark-master
