@@ -30,8 +30,6 @@ services:
       - POSTGRES_PASSWORD=postgrespw
       - POSTGRES_DB=masterclass
       - PGPASSWORD=postgrespw
-    volumes:
-      - ./postgres/postgres_bootstrap.sql:/docker-entrypoint-initdb.d/postgres_bootstrap.sql
 
   jupyterlab:
     container_name: jupyterlab
