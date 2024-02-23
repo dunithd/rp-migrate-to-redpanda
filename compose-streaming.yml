@@ -1,6 +1,7 @@
 version: '3.7'
 volumes:
   redpanda: null
+
 services:
   mysql:
       image: mysql/mysql-server:8.0.27
