@@ -40,6 +40,7 @@ services:
       - ./data:/home/jovyan/data  # Mount a local directory to the container for persistent storage
     environment:
       - JUPYTER_ENABLE_LAB=yes
+    command: "start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''"
 
   spark-master:
     container_name: spark-master
